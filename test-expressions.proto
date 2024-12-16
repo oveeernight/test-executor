@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+message TypeRepr {
+  string asm = 1;
+  int32 moduleToken = 2;
+  int32 typeToken = 3;
+  repeated TypeRepr genericArgs = 4;
+}
+
+message MethodRepr {
+  TypeRepr declType = 1;
+  string name = 2;
+  string signature = 3;
+}
+
+message FieldRepr {
+  TypeRepr typeRepr = 1;
+  string name = 2;
+}
+
+message BoolConst {
+  bool value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message CharConst {
+  int32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message Int8Const {
+  int32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message Int16Const {
+  int32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message Int32Const {
+  int32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message Int64Const {
+  int64 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message UInt8Const {
+  sint32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message UInt16Const {
+  sint32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message UInt32Const {
+  sint32 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message UInt64Const {
+  sint64 value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message FloatConst {
+  float value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message DoubleConst {
+  double value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message StringConst {
+  string value = 1;
+  TypeRepr typeRepr = 2;
+}
+
+message NullConst {
+  TypeRepr typeRepr = 1;
+}
+
+message ArrayInstance {
+  TypeRepr elementTypeRepr = 1;
+  int32 size = 2;
+  int32 address = 3;
+}
+
+message ObjectInstance {
+  TypeRepr typeRepr = 1;
+  int32 address = 2;
+}
+
+message InstanceMethodCall {
+  MethodRepr methodRepr = 1;
+  TypeRepr returnTypeRepr = 2;
+  google.protobuf.Any instance = 3;
+  repeated google.protobuf.Any args = 4;
+}
+
+message StaticMethodCall {
+  MethodRepr methodRepr = 1;
+  TypeRepr returnTypeRepr = 2;
+  repeated google.protobuf.Any args = 3;
+}
+
+message ConstructorCall {
+  MethodRepr method = 1;
+  TypeRepr returnType = 2;
+  repeated google.protobuf.Any args = 3;
+}
+
+message SetArrayIndex {
+  ArrayInstance instance = 1;
+  int32 index = 2;
+  google.protobuf.Any value = 3;
+}
+
+message SetObjectField {
+  ObjectInstance instance = 1;
+  FieldRepr fieldRepr = 2;
+  google.protobuf.Any value = 3;
+}
+
+message IlTypeInstance {
+  TypeRepr type = 1;
+}
+
+message CyclicReference {
+  TypeRepr typeRepr = 1;
+  int32 address = 2;
+}

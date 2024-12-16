@@ -1,4 +1,4 @@
-namespace TestExecutor.Core;
+namespace TestExecutor.Core.Visitors;
 
 public interface ITestStmtVisitor<out TResult>
 {
@@ -25,5 +25,8 @@ public interface ITestStmtVisitor<out TResult>
     TResult VisitSetObjectField(SetObjectField stmt);
     TResult VisitIlTypeInstance(IlTypeInstance stmt);
     TResult VisitCyclicRef(CyclicReference stmt);
-
+    
+    TResult VisitTypeRepr(TypeRepr typeRepr);
+    TResult VisitMethodRepr(MethodRepr methodRepr);
+    TResult VisitFieldRepr(FieldRepr fieldRepr);
 }

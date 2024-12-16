@@ -20,7 +20,7 @@ public class JsonConverter : JsonConverter<IlTestStmt>
         }
         var kindAsEnum = (StmtKind)kind;
         var stmt = CreateByKind(kindAsEnum);
-        
+        return stmt;
     }
 
     public override void Write(Utf8JsonWriter writer, IlTestStmt value, JsonSerializerOptions options)
