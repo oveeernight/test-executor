@@ -100,22 +100,9 @@ message ObjectInstance {
   int32 address = 2;
 }
 
-message InstanceMethodCall {
+message MethodCall {
   MethodRepr methodRepr = 1;
   TypeRepr returnTypeRepr = 2;
-  google.protobuf.Any instance = 3;
-  repeated google.protobuf.Any args = 4;
-}
-
-message StaticMethodCall {
-  MethodRepr methodRepr = 1;
-  TypeRepr returnTypeRepr = 2;
-  repeated google.protobuf.Any args = 3;
-}
-
-message ConstructorCall {
-  MethodRepr method = 1;
-  TypeRepr returnType = 2;
   repeated google.protobuf.Any args = 3;
 }
 
@@ -138,4 +125,10 @@ message IlTypeInstance {
 message CyclicReference {
   TypeRepr typeRepr = 1;
   int32 address = 2;
+}
+
+message IlTest {
+  repeated google.protobuf.Any arrangeStmts = 1;
+  google.protobuf.Any call = 2;
+  optional google.protobuf.Any expectedResult = 3;
 }

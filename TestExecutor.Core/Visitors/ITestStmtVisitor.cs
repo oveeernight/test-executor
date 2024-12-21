@@ -16,9 +16,7 @@ public interface ITestStmtVisitor<out TResult>
     TResult VisitDouble(DoubleConst stmt);
     TResult VisitString(StringConst stmt);
     TResult VisitNull(NullConst stmt);
-    TResult VisitInstanceMethodCall(InstanceMethodCall stmt);
-    TResult VisitStaticMethodCall(StaticMethodCall stmt);
-    TResult VisitConstructorCall(ConstructorCall stmt);
+    TResult VisitMethodCall(MethodCall stmt);
     TResult VisitArrayInstance(ArrayInstance stmt);
     TResult VisitObjectInstance(ObjectInstance stmt);
     TResult VisitSetArrayIndex(SetArrayIndex stmt);
