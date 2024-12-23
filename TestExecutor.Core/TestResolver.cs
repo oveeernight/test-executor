@@ -6,20 +6,19 @@ using Type = System.Type;
 
 namespace TestExecutor.Core;
 
-public record DispatchTestResult(MethodBase method, object?[] args, object? expectedValue, IMessage? expectedValueSerialized);
+public record DispatchTestResult(MethodBase method, object?[] args, object? expectedValue);
 
 public class TestResolver
 {
     // private Type[] _sourceTypes = LoadAllTypes(Assembly.LoadFrom(sourceAsm));
-    private Dictionary<int, object> _instances = new();
-    private static IList<MessageDescriptor> _testExpressionsDescriptors = TestExpressionsReflection.Descriptor.MessageTypes;
+    private readonly Dictionary<int, object> _instances = new();
+    private static readonly IList<MessageDescriptor> TestExpressionsDescriptors = TestExpressionsReflection.Descriptor.MessageTypes;
 
     public DispatchTestResult Resolve(IlTest test)
     {
         foreach (var arrangeStmt in test.ArrangeStmts)
         {
             var unpacked = UnpackAny(arrangeStmt);
-            Console.WriteLine($"unpacked message: {unpacked}");
             switch (unpacked)
             {
                 case SetObjectField setField:
@@ -35,16 +34,17 @@ public class TestResolver
                     var v = InstantiateExpression(UnpackAny(setArrayIndex.Value));
                     resolvedArr.SetValue(v, index);
                     break;
+                default:
+                    Console.Error.WriteLine($"Unexpected unpacked message: {unpacked}");
+                    break;
             }
         }
 
         var methodCall = test.Call.Unpack<MethodCall>();
-        Console.WriteLine($"methodCall: {methodCall}");
         var resolvedMethod = ResolveMethod(methodCall);
         var args = methodCall.Args.Select(UnpackAny).Select(InstantiateExpression).ToArray();
-        var expectedValueSerialized = UnpackAny(test.ExpectedResult);
         var expectedValue = InstantiateExpression(UnpackAny(test.ExpectedResult));
-        return new DispatchTestResult(resolvedMethod!, args, expectedValue, expectedValueSerialized);
+        return new DispatchTestResult(resolvedMethod, args, expectedValue);
     }
 
     private object? InstantiateExpression(IMessage message)
@@ -103,14 +103,12 @@ public class TestResolver
         }
     }
 
-    private MethodInfo ResolveMethod(MethodCall methodCall)
+    private static MethodInfo ResolveMethod(MethodCall methodCall)
     {
         var declTypeRepr = methodCall.MethodRepr.DeclType;
         var methodRepr = methodCall.MethodRepr;
 
         var type =  ResolveType(declTypeRepr);
-        // Console.WriteLine($"METHODS:");
-        // Console.WriteLine(type.GetMethods().Select(m => m.Name).Aggregate((a, b) => $"{a}, {b}"));
         var methodInfo = type.GetMethod(methodRepr.Name);
         if (methodInfo == null)
         {
@@ -135,7 +133,7 @@ public class TestResolver
     {
         var asmName = typeRepr.Asm;
         Type[] types;
-        if (_typesCache.TryGetValue(asmName, out var existingTypes))
+        if (TypesCache.TryGetValue(asmName, out var existingTypes))
         {
             types = existingTypes;
         }
@@ -143,18 +141,13 @@ public class TestResolver
         {
             var asm = Assembly.Load(asmName);
             types = asm.GetTypes();
-            _typesCache.Add(asmName, types);
+            TypesCache.Add(asmName, types);
         }
-        // foreach (var (k, v) in TestResolver._typesCache)
-        // {
-        //     Console.WriteLine($"{k} types: {string.Join(',', v.Select(t => t.FullName))}");
-        // }
 
-        // Console.WriteLine($"types: {string.Join(',', types.Select(t => t.FullName))}");
         var t = types.FirstOrDefault(t => t.MetadataToken == typeRepr.TypeToken);
         if (t == null)
         {
-            Console.Error.WriteLine($"Type {typeRepr} was not found between {string.Join(",,,", types.Select(t => t.FullName))}");
+            Console.Error.WriteLine($"Type {typeRepr} was not found among {string.Join(",", types.Select(typ => typ.FullName))}");
         }
         return t!;
     }
@@ -162,7 +155,7 @@ public class TestResolver
     private static IMessage UnpackAny(Any any)
     {
         var url = any.TypeUrl;
-        var matchingDescriptor = _testExpressionsDescriptors.FirstOrDefault(descriptor => url.EndsWith(descriptor.Name));
+        var matchingDescriptor = TestExpressionsDescriptors.FirstOrDefault(descriptor => url.EndsWith(descriptor.Name));
         if (matchingDescriptor == null)
         {
             Console.Error.WriteLine($"Unable to find any matching descroptor for {url}");
@@ -184,5 +177,5 @@ public class TestResolver
         return result.ToArray();
     }
     
-    public static Dictionary<string, Type[]> _typesCache = new();
+    private static readonly Dictionary<string, Type[]> TypesCache = new();
 }

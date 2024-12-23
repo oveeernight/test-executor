@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
-using Google.Protobuf;
 using TestExecutor.Core;
+
+
+
 
 if (args[0] != "--src")
 {
@@ -19,7 +21,6 @@ var testFile = args[3];
 
 var assembly = Assembly.LoadFrom(asm);
 var types = assembly.GetTypes();
-Console.WriteLine($"Found following types in assembly {assembly.FullName}: {string.Join(',', types.Select(t => t.FullName))}\n");
 
 IlTest test;
 var serializedTest = File.ReadAllBytes(testFile);
@@ -30,7 +31,7 @@ test = IlTest.Parser.ParseFrom(serializedTest);
 
 var resolver = new TestResolver();
 
-var (method, callArgs, expected, expectedSerialized)= resolver.Resolve(test);
+var (method, callArgs, expected) = resolver.Resolve(test);
 
 object? instance;
 
@@ -44,15 +45,12 @@ else
     callArgs = callArgs.Skip(1).ToArray();
 }
 
-var concreteResult = method.Invoke(instance, callArgs);
+var actual = method.Invoke(instance, callArgs);
 
-var concreteSerializedBytes = expectedSerialized.ToByteArray();
-var expectedSerializedBytes = expectedSerialized.ToByteArray();
-var resultsEqual = Equals(expectedSerializedBytes, concreteSerializedBytes);
+var resultsEqual = ObjectsComparer.Equals(expected, actual);
 
 
-
-Console.WriteLine(resultsEqual ? "it sucks" : "it's ok");
-Console.WriteLine($"concrete result: {concreteResult}, expected: {expected}");
+Console.WriteLine(resultsEqual ? "Results are equal" : "Results are not equal");
+Console.WriteLine($"concrete result: {actual}, expected: {expected}");
 
 return 0;
