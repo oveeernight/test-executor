@@ -140,6 +140,7 @@ public class TestResolver
         }
         else
         {
+            Console.Error.WriteLine($"getting asm {typeRepr.Asm}\n");
             var asm = Assembly.Load(asmName);
             types = asm.GetTypes();
             TypesCache.Add(asmName, types);

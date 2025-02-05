@@ -1,56 +1,46 @@
 ﻿using System.Reflection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using TestExecutor.Core;
-using TestExpressions;
 
-
-
-
-if (args[0] != "--src")
+class Program
 {
-    Console.Error.WriteLine($"Unexpected flag {args[0]}");
-    return -1;
-}
-var asm = args[1];
+    private static IHost _host;
 
-if (args[2] != "--test")
-{
-    Console.Error.WriteLine($"Unexpected flag {args[2]}");
-    return -1;
-}
+    public static void Main(string[] args)
+    {
+        var samples = args[1];
+        var asm = Assembly.LoadFrom(samples);
 
-var testFile = args[3];
+        var host = CreateHostBuilder().Build();
 
-var assembly = Assembly.LoadFrom(asm);
-
-
-var serializedTest = File.ReadAllBytes(testFile);
-
-var test = IlTest.Parser.ParseFrom(serializedTest);
-
-// Console.WriteLine(test.ToString());
-
-var resolver = new TestResolver();
-
-var (method, callArgs, expected) = resolver.Resolve(test);
-
-object? instance;
-
-if (method.IsStatic)
-{
-    instance = null;
-}
-else
-{
-    instance = callArgs[0];
-    callArgs = callArgs.Skip(1).ToArray();
+        host.Run();
+    }
+    
+    static IHostBuilder CreateHostBuilder() =>
+        Host.CreateDefaultBuilder()
+            .ConfigureServices(s => s.AddGrpc())
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.ConfigureKestrel(options =>
+                        options.ListenLocalhost(8980, listenOptions =>
+                            listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2))
+                    .Configure(app =>
+                    {
+                        app.UseRouting()
+                            .UseEndpoints(endpoints =>
+                            {
+                                endpoints.MapGet("/shutdown", async context =>
+                                    await _host.StopAsync());
+                                endpoints.MapGrpcService<ConcreteExecutorService>();
+                            });
+                    });
+            });
 }
 
-var actual = method.Invoke(instance, callArgs);
-
-var resultsEqual = ObjectsComparer.Equals(expected, actual);
 
 
-Console.WriteLine(resultsEqual ? "Results are equal" : "Results are not equal");
-Console.WriteLine($"concrete result: {actual}, expected: {expected}");
 
-return 0;
+
