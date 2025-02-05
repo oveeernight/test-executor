@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using TestExecutor.Core;
+using TestExpressions;
 
 
 
@@ -20,12 +21,11 @@ if (args[2] != "--test")
 var testFile = args[3];
 
 var assembly = Assembly.LoadFrom(asm);
-var types = assembly.GetTypes();
 
-IlTest test;
+
 var serializedTest = File.ReadAllBytes(testFile);
 
-test = IlTest.Parser.ParseFrom(serializedTest);
+var test = IlTest.Parser.ParseFrom(serializedTest);
 
 // Console.WriteLine(test.ToString());
 

@@ -2,6 +2,7 @@ using System.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using TestExpressions;
 using Type = System.Type;
 
 namespace TestExecutor.Core;
@@ -108,8 +109,8 @@ public class TestResolver
         var declTypeRepr = methodCall.MethodRepr.DeclType;
         var methodRepr = methodCall.MethodRepr;
 
-        var type =  ResolveType(declTypeRepr);
-        var methodInfo = type.GetMethod(methodRepr.Name);
+        var declType =  ResolveType(declTypeRepr);
+        var methodInfo = declType.GetMethod(methodRepr.Name);
         if (methodInfo == null)
         {
             Console.Error.WriteLine($"Method {methodRepr.Name} not found");
@@ -158,7 +159,7 @@ public class TestResolver
         var matchingDescriptor = TestExpressionsDescriptors.FirstOrDefault(descriptor => url.EndsWith(descriptor.Name));
         if (matchingDescriptor == null)
         {
-            Console.Error.WriteLine($"Unable to find any matching descroptor for {url}");
+            Console.Error.WriteLine($"Unable to find any matching descriptor for {url}");
         }
 
         return matchingDescriptor!.Parser.ParseFrom(any.Value);
