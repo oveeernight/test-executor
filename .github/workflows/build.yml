@@ -22,3 +22,6 @@ jobs:
 
       - name: Build solution
         run: dotnet build -c Debug --no-restore
+        
+      - name: Test solution
+        run: dotnet test -c Debug --no-build
