@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="OpCodes.fs" />
+        <Compile Include="ilInstr.fs" />
+        <Compile Include="MethodBody.fs" />
+        <Compile Include="MethodInstrBuilder.fs" />
+        <Compile Include="CFG.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TestExecutor.Utils\TestExecutor.Utils.fsproj" />
+    </ItemGroup>
+
+</Project>

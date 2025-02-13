@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <RootNamespace>CoverageTool</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="CoverageDeserializer.fs" />
+        <Compile Include="CoverageTool.fs" />
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CoverageBuildType>Debug</CoverageBuildType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <CoverageBuildType>Release</CoverageBuildType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TestExecutor.CSharpUtils\TestExecutor.CSharpUtils.csproj" />
+      <ProjectReference Include="..\TestExecutor.IL\TestExecutor.IL.fsproj" />
+      <ProjectReference Include="..\TestExecutor.Utils\TestExecutor.Utils.fsproj" />
+    </ItemGroup>
+
+    <Target Name="UnixBuildCoverage" AfterTargets="BeforeBuild" Condition=" !$([MSBuild]::IsOSPlatform('Windows')) ">
+        <Exec Command="&#xA;            cd ../TestExecutor.CoverageInstrumenter&#xA;            mkdir cmake-build-$(CoverageBuildType)&#xA;            cd cmake-build-$(CoverageBuildType)&#xA;            cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=$(CoverageBuildType) ../&#xA;            cmake --build . --target vsharpCoverage -j 6" />
+    </Target>
+
+    <Target Name="WinBuildCoverage" AfterTargets="BeforeBuild" Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
+        <Exec Command="&#xA;            cd ..\TestExecutor.CoverageInstrumenter&#xA;            mkdir cmake-build-$(CoverageBuildType)&#xA;            cd cmake-build-$(CoverageBuildType)&#xA;            cmake -G %22Visual Studio 17 2022%22 -DCMAKE_BUILD_TYPE=$(CoverageBuildType) ../&#xA;            cmake --build . --config $(CoverageBuildType) --target ALL_BUILD -j 6" />
+    </Target>
+
+    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">
+        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.so">
+            <Link>libvsharpCoverage.so</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">
+        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.dylib">
+            <Link>libvsharpCoverage.dylib</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
+        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\$(CoverageBuildType)\libvsharpCoverage.dll">
+            <Link>libvsharpCoverage.dll</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    
+</Project>

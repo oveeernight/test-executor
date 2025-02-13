@@ -63,17 +63,9 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
         }
         catch (Exception e)
         {
-            // if (ObjectsComparer.Equals(e, e))
-            // {
-            //     var result = new ExecutionResult { Success = new Success() };
-            //     return Task.FromResult(result);
-            // }
-            // else
-            // {
             var reason = "Internal error occured:\n" + e.StackTrace!;
                 var result = new ExecutionResult { Fail = new Fail { Reason = reason } };
                 return Task.FromResult(result);
-            // }
         }
     }
 }

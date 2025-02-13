@@ -398,3 +398,13 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+
+**/cmake-build-debug/**
+**/cmake-build-Debug/**
+**/cmake-build-Release/**
+TestExecutor.CoverageInstrumenter/sdk/*
+TestExecutor.CoverageInstrumenter/packs/*
+TestExecutor.CoverageInstrumenter/shared/*
+TestExecutor.CoverageInstrumenter/host/*
+
