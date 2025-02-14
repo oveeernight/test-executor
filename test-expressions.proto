@@ -5,7 +5,7 @@ import "google/protobuf/any.proto";
 option csharp_namespace = "TestExpressions";
 
 service ConcreteExecutor {
-  rpc Execute(IlTest) returns(ExecutionResult) {}
+  rpc Execute(IlTestBatch) returns(ExecutionResult) {}
 }
 
 message TypeRepr {
@@ -137,6 +137,10 @@ message IlTest {
   repeated google.protobuf.Any arrangeStmts = 1;
   google.protobuf.Any call = 2;
   optional google.protobuf.Any expectedResult = 3;
+}
+
+message IlTestBatch {
+  repeated IlTest tests = 1;
 }
 
 message Success {}

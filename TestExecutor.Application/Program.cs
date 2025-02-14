@@ -8,15 +8,16 @@ using TestExecutor.Core;
 class Program
 {
     private static IHost _host;
+    private static CancellationTokenSource cts = new CancellationTokenSource();
 
     public static void Main(string[] args)
     {
         var samples = args[1];
-        var asm = Assembly.LoadFrom(samples);
+        // var asm = Assembly.LoadFrom(samples);
 
         var host = CreateHostBuilder().Build();
 
-        host.Run();
+        host.RunAsync(cts.Token);
     }
     
     static IHostBuilder CreateHostBuilder() =>
@@ -32,8 +33,6 @@ class Program
                         app.UseRouting()
                             .UseEndpoints(endpoints =>
                             {
-                                endpoints.MapGet("/shutdown", async context =>
-                                    await _host.StopAsync());
                                 endpoints.MapGrpcService<ConcreteExecutorService>();
                             });
                     });

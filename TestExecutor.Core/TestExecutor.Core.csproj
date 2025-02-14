@@ -18,5 +18,9 @@
   <ItemGroup>
     <Protobuf Include = "../test-expressions.proto" GrpcServices="Server" /> 
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\TestExecutor.CoverageTool\TestExecutor.CoverageTool.fsproj" />
+  </ItemGroup>
 
 </Project>

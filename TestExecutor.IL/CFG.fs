@@ -254,6 +254,7 @@ and CfgInfo internal (method : Method) =
         dfs startVertices
 
     static member TerminalForCFGEdge = 0<terminalSymbol>
+    member this.MethodBase = method.MethodBase
     member this.SortedBasicBlocks = sortedBasicBlocks
     member this.IlBytes = ilBytes
     member this.EntryPoint = sortedBasicBlocks[0]
@@ -318,5 +319,3 @@ module Application =
 
     do
         Method.InstantiateNew <- getMethod
-
-
