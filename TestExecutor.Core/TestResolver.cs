@@ -30,8 +30,12 @@ public class TestResolver
                     field.SetValue(resolvedObj, value);
                     break;
                 case SetArrayIndex setArrayIndex:
+                    // Console.WriteLine();
+                    Console.Error.WriteLine($"Unkown array instance: {setArrayIndex}");
                     var resolvedArr = (Array)ResolveReferenceType(setArrayIndex.Instance);
                     var index = setArrayIndex.Index;
+                    Console.WriteLine($"Array len: {resolvedArr.LongLength}");
+                    // Console.WriteLine($"Index: {index}");
                     var v = InstantiateExpression(UnpackAny(setArrayIndex.Value));
                     resolvedArr.SetValue(v, index);
                     break;

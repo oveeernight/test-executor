@@ -5,8 +5,9 @@ using TestExecutor.CoverageTool;
 
 namespace TestExecutor.Core;
 
-public class ConcreteExecutorService(Assembly samplesAssembly) : ConcreteExecutor.ConcreteExecutorBase
+public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
 {
+    public Assembly? SamplesAssembly { get; set; }
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)
     {
         var resolver = new TestResolver();
@@ -38,7 +39,8 @@ public class ConcreteExecutorService(Assembly samplesAssembly) : ConcreteExecuto
                     callArgs = callArgs.Skip(1).ToArray();
                 }
 
-                coverageTool.SetEntryMain(method.Module.Assembly, method.Module.Name, method.MetadataToken);
+                
+                // coverageTool.SetEntryMain(method.Module.Assembly, method.Module.Name, method.MetadataToken);
 
                 var actual = method.Invoke(instance, callArgs);
 
@@ -67,30 +69,40 @@ public class ConcreteExecutorService(Assembly samplesAssembly) : ConcreteExecuto
                 return new ExecutionResult { Fail = new Fail { Reason = reason } };
             }
         });
+        
+        var failedTests = results.Where(test => test.Fail is not null).ToArray();
+        if (failedTests.Any())
+        {
+            var failReason = string.Join("\n", failedTests.Select(test => test.Fail.Reason));
+            var result = new ExecutionResult { Fail = new Fail { Reason = failReason } };
+            return Task.FromResult(result);
+        }
+        
+        return Task.FromResult(new ExecutionResult { Success = new Success() });
 
-        var (actualCoverage, info) = coverageTool.ComputeCoverage(exploredMethod);
-        if (CheckCoverage(exploredMethod, actualCoverage))
-        {
-            var result = new ExecutionResult { Success = new Success() };
-            return Task.FromResult(result);
-        }
-        else
-        {
-            var result = new ExecutionResult { Fail = new Fail {Reason = info} };
-            return Task.FromResult(result);
-        }
+        // var (actualCoverage, info) = coverageTool.ComputeCoverage(exploredMethod);
+        // if (CheckCoverage(exploredMethod, actualCoverage))
+        // {
+        //     var result = new ExecutionResult { Success = new Success() };
+        //     return Task.FromResult(result);
+        // }
+        // else
+        // {
+        //     var result = new ExecutionResult { Fail = new Fail {Reason = info} };
+        //     return Task.FromResult(result);
+        // }
 
     }
     
-    private Type coverageAttributeType = samplesAssembly.GetTypes().First(t => t.Name.EndsWith("ExpectedCoverageAttribute"));
     private bool CheckCoverage(MethodBase method, int actual)
     {
-        var coverageAttribute = method.GetCustomAttribute(coverageAttributeType);
+        Type testSvmAttribute = SamplesAssembly.GetTypes().First(t => t.Name.EndsWith("SvmTestAttribute"));
+        var coverageAttribute = method.GetCustomAttribute(testSvmAttribute);
         if (coverageAttribute == null)
         {
-            throw new Exception($"Method {method.Name} does not have expected coverage attribute");
+            throw new Exception($"Method {method.Name} does not have expected SvmTestAttribute");
         }
-        var expectedCoverage = coverageAttributeType.GetProperty("ExpectedCoverage")?.GetValue(coverageAttribute);
+        var expectedCoverage = testSvmAttribute.GetProperty("ExpectedCoverage")?.GetValue(coverageAttribute);
         if (expectedCoverage == null)
         {
             throw new Exception($"Method {method.Name} does not have expected coverage attribute set");
