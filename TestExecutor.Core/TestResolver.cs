@@ -9,13 +9,13 @@ namespace TestExecutor.Core;
 
 public record DispatchTestResult(MethodBase method, object?[] args, object? expectedValue);
 
-public class TestResolver
+public class TestResolver(IlTest test)
 {
     // private Type[] _sourceTypes = LoadAllTypes(Assembly.LoadFrom(sourceAsm));
     private readonly Dictionary<int, object> _instances = new();
     private static readonly IList<MessageDescriptor> TestExpressionsDescriptors = TestExpressionsReflection.Descriptor.MessageTypes;
 
-    public DispatchTestResult Resolve(IlTest test)
+    public DispatchTestResult Resolve()
     {
         foreach (var arrangeStmt in test.ArrangeStmts)
         {
@@ -34,7 +34,7 @@ public class TestResolver
                     Console.Error.WriteLine($"Unkown array instance: {setArrayIndex}");
                     var resolvedArr = (Array)ResolveReferenceType(setArrayIndex.Instance);
                     var index = setArrayIndex.Index;
-                    Console.WriteLine($"Array len: {resolvedArr.LongLength}");
+                    // Console.WriteLine($"Array len: {resolvedArr.LongLength}");
                     // Console.WriteLine($"Index: {index}");
                     var v = InstantiateExpression(UnpackAny(setArrayIndex.Value));
                     resolvedArr.SetValue(v, index);
@@ -49,6 +49,7 @@ public class TestResolver
         var resolvedMethod = ResolveMethod(methodCall);
         var args = methodCall.Args.Select(UnpackAny).Select(InstantiateExpression).ToArray();
         var expectedValue = InstantiateExpression(UnpackAny(test.ExpectedResult));
+        _instances.Clear();
         return new DispatchTestResult(resolvedMethod, args, expectedValue);
     }
 

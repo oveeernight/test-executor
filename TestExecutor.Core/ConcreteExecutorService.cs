@@ -10,16 +10,16 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
     public Assembly? SamplesAssembly { get; set; }
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)
     {
-        var resolver = new TestResolver();
         MethodBase? exploredMethod = null;
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
         var coverageTool = new InteractionCoverageTool(dir);
         var results = requestBatch.Tests.ToArray().Select<IlTest, ExecutionResult>(test =>
         {
+            var resolver = new TestResolver(test);
             Exception? expectedException = null;
             try
             {
-                var (method, callArgs, expected) = resolver.Resolve(test);
+                var (method, callArgs, expected) = resolver.Resolve();
                 exploredMethod = method;
 
                 if (expected is Exception e)
@@ -40,7 +40,7 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
                 }
 
                 
-                // coverageTool.SetEntryMain(method.Module.Assembly, method.Module.Name, method.MetadataToken);
+                coverageTool.SetEntryMain(method.Module.Assembly, method.Module.Name, method.MetadataToken);
 
                 var actual = method.Invoke(instance, callArgs);
 

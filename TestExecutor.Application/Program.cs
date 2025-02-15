@@ -19,8 +19,8 @@ class Program
 
         var host = CreateHostBuilder().Build();
 
-        // var service = host.Services.GetService<ConcreteExecutorService>();
-        // service.SamplesAssembly = samples;
+        var service = host.Services.GetService<ConcreteExecutorService>();
+        service.SamplesAssembly = samples;
 
         await host.RunAsync(cts.Token);
     }
@@ -30,18 +30,19 @@ class Program
             .ConfigureServices(s =>
             {
                 s.AddGrpc();
-                // s.AddSingleton<ConcreteExecutorService>();
+                s.AddSingleton<ConcreteExecutorService>();
             })
-            .ConfigureLogging(builder => builder.AddConsole(opt =>
-            {
-                opt.IncludeScopes = true;
-                opt.TimestampFormat = "hh:mm:ss ";
-            }))
+            .ConfigureLogging(builder =>
+                builder.AddConsole(opt =>
+                {
+                    opt.IncludeScopes = true;
+                    opt.TimestampFormat = "hh:mm:ss";
+                }))
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureKestrel(options =>
-                        options.ListenLocalhost(8980, listenOptions =>
-                            listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2))
+                    options.ListenLocalhost(8980, listenOptions =>
+                        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2))
                     .Configure(app =>
                     {
                         app.UseRouting()
