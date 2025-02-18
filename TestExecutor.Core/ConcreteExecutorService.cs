@@ -1,4 +1,5 @@
 using System.Reflection;
+using Cfg;
 using Grpc.Core;
 using TestExpressions;
 using TestExecutor.CoverageTool;
@@ -10,8 +11,11 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
     public Assembly? SamplesAssembly { get; set; }
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)
     {
-        MethodBase? exploredMethod = null;
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        var mb = TestResolver.ResolveBatchExploredMethod(requestBatch);
+        var method = Application.getMethod(mb);
+        var cfg = method.CFG;
+
         var coverageTool = new InteractionCoverageTool(dir);
         var results = requestBatch.Tests.ToArray().Select<IlTest, ExecutionResult>(test =>
         {
@@ -20,7 +24,6 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
             try
             {
                 var (method, callArgs, expected) = resolver.Resolve();
-                exploredMethod = method;
 
                 if (expected is Exception e)
                 {
@@ -39,10 +42,11 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
                     callArgs = callArgs.Skip(1).ToArray();
                 }
 
-                
-                coverageTool.SetEntryMain(method.Module.Assembly, method.Module.Name, method.MetadataToken);
+                coverageTool.SetEntryMain(method.Module.Assembly, method.Module.FullyQualifiedName, method.MetadataToken);
+                coverageTool.SetCurrentThreadId(0);
 
                 var actual = method.Invoke(instance, callArgs);
+                Console.WriteLine("after invoke");
 
                 var resultsEqual = ObjectsComparer.Equals(expected, actual);
                 if (resultsEqual)
@@ -77,20 +81,27 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
             var result = new ExecutionResult { Fail = new Fail { Reason = failReason } };
             return Task.FromResult(result);
         }
-        
-        return Task.FromResult(new ExecutionResult { Success = new Success() });
-
+        //
         // var (actualCoverage, info) = coverageTool.ComputeCoverage(exploredMethod);
-        // if (CheckCoverage(exploredMethod, actualCoverage))
-        // {
-        //     var result = new ExecutionResult { Success = new Success() };
-        //     return Task.FromResult(result);
-        // }
-        // else
-        // {
-        //     var result = new ExecutionResult { Fail = new Fail {Reason = info} };
-        //     return Task.FromResult(result);
-        // }
+        // Console.WriteLine("Computed coverage:");
+        //
+        //
+        // return Task.FromResult(new ExecutionResult { Success = new Success() });
+
+        Console.WriteLine("Before computing coverage");
+        var (actualCoverage, info) = coverageTool.ComputeCoverage(cfg.MethodBase, cfg);
+        Console.WriteLine($"Computed coverage: {actualCoverage}");
+
+        if (CheckCoverage(cfg.MethodBase, actualCoverage))
+        {
+            var result = new ExecutionResult { Success = new Success() };
+            return Task.FromResult(result);
+        }
+        else
+        {
+            var result = new ExecutionResult { Fail = new Fail {Reason = info} };
+            return Task.FromResult(result);
+        }
 
     }
     

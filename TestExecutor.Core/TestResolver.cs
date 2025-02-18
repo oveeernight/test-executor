@@ -11,7 +11,6 @@ public record DispatchTestResult(MethodBase method, object?[] args, object? expe
 
 public class TestResolver(IlTest test)
 {
-    // private Type[] _sourceTypes = LoadAllTypes(Assembly.LoadFrom(sourceAsm));
     private readonly Dictionary<int, object> _instances = new();
     private static readonly IList<MessageDescriptor> TestExpressionsDescriptors = TestExpressionsReflection.Descriptor.MessageTypes;
 
@@ -30,12 +29,8 @@ public class TestResolver(IlTest test)
                     field.SetValue(resolvedObj, value);
                     break;
                 case SetArrayIndex setArrayIndex:
-                    // Console.WriteLine();
-                    Console.Error.WriteLine($"Unkown array instance: {setArrayIndex}");
                     var resolvedArr = (Array)ResolveReferenceType(setArrayIndex.Instance);
                     var index = setArrayIndex.Index;
-                    // Console.WriteLine($"Array len: {resolvedArr.LongLength}");
-                    // Console.WriteLine($"Index: {index}");
                     var v = InstantiateExpression(UnpackAny(setArrayIndex.Value));
                     resolvedArr.SetValue(v, index);
                     break;
@@ -159,6 +154,13 @@ public class TestResolver(IlTest test)
         return t!;
     }
 
+    public static MethodBase ResolveBatchExploredMethod(IlTestBatch batch)
+    {
+        var test = batch.Tests[0];
+        var methodInfo = ResolveMethod(test.Call.Unpack<MethodCall>());
+        return methodInfo;
+    }
+    
     private static IMessage UnpackAny(Any any)
     {
         var url = any.TypeUrl;
@@ -169,19 +171,6 @@ public class TestResolver(IlTest test)
         }
 
         return matchingDescriptor!.Parser.ParseFrom(any.Value);
-    }
-
-    private static Type[] LoadAllTypes(Assembly assembly)
-    {
-        var result = new List<Type>();
-        result.AddRange(assembly.GetTypes());
-        var referenced = assembly.GetReferencedAssemblies();
-        foreach (var referencedAssembly in referenced.Select(Assembly.Load))
-        {
-            result.AddRange(referencedAssembly.GetTypes());
-        }
-
-        return result.ToArray();
     }
     
     private static readonly Dictionary<string, Type[]> TypesCache = new();

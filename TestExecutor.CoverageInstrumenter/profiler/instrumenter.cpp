@@ -123,6 +123,7 @@ HRESULT Instrumenter::instrument(FunctionID functionId) {
     if (!InstrumentationIsNeeded(moduleName, moduleNameLength, m_jittedToken)) {
         return S_OK;
     }
+    tout << "Instrumentation starting, jit_token = " << m_jittedToken << std::endl;
 
     if (profilerState->collectMainOnly) {
         profilerState->mainFunctionId = functionId;

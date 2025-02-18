@@ -68,6 +68,8 @@ ProfilerState::ProfilerState(ICorProfilerInfo8 *corProfilerInfo) {
 }
 
 void vsharp::ProfilerState::setEntryMain(char *assemblyName, int assemblyNameLength, char *moduleName, int moduleNameLength, int methodToken) {
+    tout << "In another SetEntryMain" << std::endl;
+
     auto* wcharAssemblyName = new WCHAR[assemblyNameLength];
     memcpy(wcharAssemblyName, assemblyName, assemblyNameLength * sizeof(WCHAR));
 

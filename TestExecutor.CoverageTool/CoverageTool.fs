@@ -1,6 +1,7 @@
 ﻿namespace TestExecutor.CoverageTool
 
 
+open System
 open System.Collections.Generic
 open System.Diagnostics
 open System.IO
@@ -10,36 +11,26 @@ open System.Text
 open Cfg
 open Microsoft.FSharp.NativeInterop
 open TestExecutor.CoverageTool.CoverageDeserializer
+open TestExecutor
 
 
 #nowarn "9"
 
 module private ExternalCalls =
-    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void SetEntryMain(byte* assemblyName, int assemblyNameLength, byte* moduleName, int moduleNameLength, int methodToken)
 
-    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void GetHistory(nativeint size, nativeint data)
 
-    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void SetCurrentThreadId(int id)
 
 type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
-    let resultName = "coverage.cov"
     let mutable entryMainWasSet = false
 
     let castPtr ptr =
         NativePtr.toVoidPtr ptr |> NativePtr.ofVoidPtr
-
-    let getHistory () =
-        let coverageFile = workingDirectory.EnumerateFiles(resultName) |> Seq.tryHead
-        match coverageFile with
-        | Some coverageFile ->
-            File.ReadAllBytes(coverageFile.FullName)
-            |> getRawReports
-            |> reportsFromRawReports
-            |> Some
-        | None -> None
 
     let getCoverageInfo (allBlocks: ResizeArray<BasicBlock>) (visited: HashSet<BasicBlock>) =
         let sb = StringBuilder()
@@ -51,6 +42,23 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
         if allCovered then
             sb.AppendLine "All blocks are covered" |> ignore
         sb.ToString()
+        
+        
+    member private this.GetRawHistory () =
+        if not entryMainWasSet then
+            internalfail "Try call GetRawHistory, while entryMain wasn't set"
+        let sizePtr = NativePtr.stackalloc<uint> 1
+        let dataPtrPtr = NativePtr.stackalloc<nativeint> 1
+
+        ExternalCalls.GetHistory(NativePtr.toNativeInt sizePtr, NativePtr.toNativeInt dataPtrPtr)
+
+        let size = NativePtr.read sizePtr |> int
+        let dataPtr = NativePtr.read dataPtrPtr
+
+        let data = Array.zeroCreate<byte> size
+        Marshal.Copy(dataPtr, data, 0, size)
+        Console.WriteLine $"data size: {size}"
+        data
 
     member this.SetEntryMain (assembly : Assembly) (moduleName : string) (methodToken : int) =
         entryMainWasSet <- true
@@ -66,15 +74,14 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
             moduleNameLength,
             methodToken
         )
-    member this.ComputeCoverage (mb: MethodBase) =
-        let method = Application.getMethod mb
-        let cfg = method.CFG
+    member this.ComputeCoverage (mb: MethodBase, cfg: CfgInfo) =
 
         let visitedBlocks = HashSet<BasicBlock>()
         let visited =
-            match getHistory () with
-            | None -> [||]
-            | Some history -> history
+            this.GetRawHistory()
+            |> getRawReports
+            |> reportsFromRawReports
+        Console.WriteLine $"VisitedBlocks {visited.Length}"
         
         let token = cfg.MethodBase.MetadataToken
         let moduleName = cfg.MethodBase.Module.FullyQualifiedName
@@ -89,3 +96,6 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
 
         let coveredSize = visitedBlocks |> Seq.sumBy (_.BlockSize)
         (double coveredSize) / (double cfg.MethodSize) * 100. |> int, getCoverageInfo cfg.SortedBasicBlocks visitedBlocks
+        
+    member this.SetCurrentThreadId id =
+        ExternalCalls.SetCurrentThreadId(id)

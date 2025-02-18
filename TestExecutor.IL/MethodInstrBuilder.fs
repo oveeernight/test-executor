@@ -1,5 +1,6 @@
 module TestExecutor.IL.MethodInstrBuilder
 
+open System
 open System.Collections.Generic
 open System.Reflection.Emit
 open TestExecutor
@@ -13,6 +14,7 @@ let private invalidProgram reason =
 
 let build (bytecode : byte array) =
     let instList = ResizeArray<ilInstr>()
+    Console.WriteLine (String.Join("", bytecode))
     let codeSize = bytecode.Length
     let mutable offset = 0
     let codeSize : offset = codeSize
@@ -46,9 +48,10 @@ let build (bytecode : byte array) =
 
         let instr = {opcode = op; offset = startOffset}
         instList.Add(instr)
+        Console.WriteLine $"added instruction {instr}"
         offset <- offset + size
     let dictionary = Dictionary()
     for inst in instList do
-        dictionary[inst.offset] = inst |> ignore
+        dictionary[inst.offset] <- inst
     assert(offset = codeSize)
     instList, dictionary

@@ -83,7 +83,7 @@ and CfgInfo internal (method : Method) =
         let basicBlocks = HashSet<BasicBlock>()
         let addBasicBlock v = basicBlocks.Add v |> ignore
         let greyVertices = HashSet<offset>()
-        let vertexToBasicBlock: array<Option<BasicBlock>> = Array.init ilBytes.Length (fun _ -> None)
+        let vertexToBasicBlock: array<Option<BasicBlock>> = Array.init (ilBytes.Length + 1) (fun _ -> None)
 
         let findFinalVertex intermediatePoint block =
             let mutable index = 0
@@ -277,9 +277,10 @@ and Method internal (m : MethodBase) as this =
         let body = m.GetMethodBody()
         let ehcs = body.ExceptionHandlingClauses
         let ehcsArray = Array.zeroCreate ehcs.Count
-        for i in 0..ehcsArray.Length do
-            ehcsArray[i] = ehClause.Create(ehcs[i]) |> ignore
-        ehcsArray)
+        for i in 0..ehcsArray.Length - 1 do
+            ehcsArray[i] <- ehClause.Create(ehcs[i])
+        ehcsArray
+        )
     let cfg = lazy(CfgInfo this)
     
     member x.MethodBase = m
