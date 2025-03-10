@@ -17,13 +17,13 @@ open TestExecutor
 #nowarn "9"
 
 module private ExternalCalls =
-    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void SetEntryMain(byte* assemblyName, int assemblyNameLength, byte* moduleName, int moduleNameLength, int methodToken)
 
-    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void GetHistory(nativeint size, nativeint data)
 
-    [<DllImport("/home/rnpozharskiy/work/test-executor/TestExecutor.CoverageTool/bin/Debug/net8.0/libvsharpCoverage.so", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
+    [<DllImport("libvsharpCoverage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)>]
     extern void SetCurrentThreadId(int id)
 
 type InteractionCoverageTool(workingDirectory: DirectoryInfo) =

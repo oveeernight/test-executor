@@ -12,6 +12,7 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)
     {
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
+        Console.WriteLine(dir.FullName);
         var mb = TestResolver.ResolveBatchExploredMethod(requestBatch);
         var method = Application.getMethod(mb);
         var cfg = method.CFG;
@@ -53,7 +54,7 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
                 {
                     return new ExecutionResult { Success = new Success() };
                 }
-                var reason = "Symbolic result is not equal to actual";
+                var reason = $"Symbolic result is not equal to actual, expected {expected}, actual {actual}";
                 return new ExecutionResult { Fail = new Fail { Reason = reason } };
             }
             catch (TargetInvocationException ex)
@@ -81,16 +82,9 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
             var result = new ExecutionResult { Fail = new Fail { Reason = failReason } };
             return Task.FromResult(result);
         }
-        //
-        // var (actualCoverage, info) = coverageTool.ComputeCoverage(exploredMethod);
-        // Console.WriteLine("Computed coverage:");
-        //
-        //
-        // return Task.FromResult(new ExecutionResult { Success = new Success() });
 
-        Console.WriteLine("Before computing coverage");
+
         var (actualCoverage, info) = coverageTool.ComputeCoverage(cfg.MethodBase, cfg);
-        Console.WriteLine($"Computed coverage: {actualCoverage}");
 
         if (CheckCoverage(cfg.MethodBase, actualCoverage))
         {

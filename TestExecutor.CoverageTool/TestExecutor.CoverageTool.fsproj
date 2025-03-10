@@ -34,26 +34,5 @@
     <Target Name="WinBuildCoverage" AfterTargets="BeforeBuild" Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
         <Exec Command="&#xA;            cd ..\TestExecutor.CoverageInstrumenter&#xA;            mkdir cmake-build-$(CoverageBuildType)&#xA;            cd cmake-build-$(CoverageBuildType)&#xA;            cmake -G %22Visual Studio 17 2022%22 -DCMAKE_BUILD_TYPE=$(CoverageBuildType) ../&#xA;            cmake --build . --config $(CoverageBuildType) --target ALL_BUILD -j 6" />
     </Target>
-
-    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">
-        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.so">
-            <Link>libvsharpCoverage.so</Link>
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">
-        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.dylib">
-            <Link>libvsharpCoverage.dylib</Link>
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
-        <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\$(CoverageBuildType)\libvsharpCoverage.dll">
-            <Link>libvsharpCoverage.dll</Link>
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
     
 </Project>

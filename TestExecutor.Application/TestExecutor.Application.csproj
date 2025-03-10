@@ -16,4 +16,33 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
   </ItemGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <CoverageBuildType>Debug</CoverageBuildType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <CoverageBuildType>Release</CoverageBuildType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Linux')) ">
+    <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.so">
+<!--      <Link>libvsharpCoverage.so</Link>-->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('OSX')) ">
+    <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\libvsharpCoverage.dylib">
+<!--      <Link>libvsharpCoverage.dylib</Link>-->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
+    <Content Include="..\TestExecutor.CoverageInstrumenter\cmake-build-$(CoverageBuildType)\$(CoverageBuildType)\libvsharpCoverage.dll">
+<!--      <Link>libvsharpCoverage.dll</Link>-->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

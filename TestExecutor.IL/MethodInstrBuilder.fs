@@ -14,7 +14,6 @@ let private invalidProgram reason =
 
 let build (bytecode : byte array) =
     let instList = ResizeArray<ilInstr>()
-    Console.WriteLine (String.Join("", bytecode))
     let codeSize = bytecode.Length
     let mutable offset = 0
     let codeSize : offset = codeSize
@@ -48,7 +47,6 @@ let build (bytecode : byte array) =
 
         let instr = {opcode = op; offset = startOffset}
         instList.Add(instr)
-        Console.WriteLine $"added instruction {instr}"
         offset <- offset + size
     let dictionary = Dictionary()
     for inst in instList do
