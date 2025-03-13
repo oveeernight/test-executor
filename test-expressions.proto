@@ -95,6 +95,18 @@ message NullConst {
   TypeRepr typeRepr = 1;
 }
 
+message Slice {
+  google.protobuf.Any expr = 1;
+  int32 start = 2;
+  int32 end = 3;
+  int32 pos = 4;
+}
+
+message Combine {
+  repeated Slice slices = 1;
+  TypeRepr sightType = 2;
+}
+
 message ArrayInstance {
   TypeRepr elementTypeRepr = 1;
   int32 size = 2;

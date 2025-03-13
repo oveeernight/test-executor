@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using TestExecutor.CSharpUtils;
 using TestExecutor.Utils;
+using TestExpressions;
 
 namespace TestExecutor.Core;
 
@@ -204,5 +205,18 @@ public static class UnsafeUtils
             System.Runtime.InteropServices.Marshal.FreeHGlobal(ptr);
         }
     }
-    
+
+
+    public static object ReinterpretCombine(Type type, (object?, int, int, int)[] slices)
+    {
+        var resultSize = TypeUtils.internalSizeOf(type);
+        var resultBytes = new byte[resultSize];
+        foreach (var (o, s, e, p) in slices)
+        {
+            var slicingExprBytes = ObjToBytes(o);
+            Array.Copy(slicingExprBytes, s, resultBytes, p, e - s);
+        }
+        return BytesToObject(resultBytes, type);
+
+    }
 }

@@ -66,6 +66,14 @@ public class TestResolver(IlTest test)
             case DoubleConst c: return c.Value;
             case StringConst c: return c.Value;
             case NullConst: return null;
+            case Combine c:
+                var type = ResolveType(c.SightType);
+                var slices = c.Slices.Select(slice =>
+                {
+                    var expr = InstantiateExpression(UnpackAny(slice.Expr));
+                    return (expr, slice.Start, slice.End, slice.Pos);
+                }).ToArray();
+                return UnsafeUtils.ReinterpretCombine(type, slices);
             case ArrayInstance array: return ResolveReferenceType(array);
             case ObjectInstance obj: return ResolveReferenceType(obj);
             case CyclicReference cyclicReference: return ResolveReferenceType(cyclicReference);
