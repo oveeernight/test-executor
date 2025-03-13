@@ -111,6 +111,12 @@ let resolveMethod (method : MethodBase) methodToken =
     
     // ----------------------------------- Creating objects ----------------------------------
 
+let defaultOf (t : Type) =
+    assert(not t.IsByRefLike)
+    if t.IsValueType && Nullable.GetUnderlyingType(t) = null && not t.ContainsGenericParameters
+        then Activator.CreateInstance t
+        else null
+
 let createObject (t : Type) =
     assert(not t.IsByRefLike)
     match t with
