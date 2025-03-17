@@ -12,7 +12,6 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)
     {
         var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-        Console.WriteLine(dir.FullName);
         var mb = TestResolver.ResolveBatchExploredMethod(requestBatch);
         var method = Application.getMethod(mb);
         var cfg = method.CFG;
@@ -47,7 +46,6 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
                 coverageTool.SetCurrentThreadId(0);
 
                 var actual = method.Invoke(instance, callArgs);
-                Console.WriteLine("after invoke");
 
                 var resultsEqual = ObjectsComparer.Equals(expected, actual);
                 if (resultsEqual)
@@ -93,6 +91,7 @@ public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
         }
         else
         {
+            info = $"Actual coverage is {actualCoverage}\n{info}";
             var result = new ExecutionResult { Fail = new Fail {Reason = info} };
             return Task.FromResult(result);
         }

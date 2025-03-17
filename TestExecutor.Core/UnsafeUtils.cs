@@ -7,7 +7,7 @@ namespace TestExecutor.Core;
 
 public static class UnsafeUtils
 {
-    public static byte[] ObjToBytes(object obj)
+    public static byte[] ObjectToBytes(object obj)
     {
         switch (obj)
         {
@@ -43,7 +43,7 @@ public static class UnsafeUtils
                 if (obj is Enum e)
                 {
                     var o = Convert.ChangeType(e, TypeUtils.EnumUtils.getEnumUnderlyingTypeChecked(e.GetType()));
-                    return ObjToBytes(o);
+                    return ObjectToBytes(o);
                 }
                 throw new InvalidOperationException($"Getting bytes from unexpected object {obj}");
         }
@@ -61,7 +61,7 @@ public static class UnsafeUtils
             foreach (var field in fields)
             {
                 var value = field.GetValue(t);
-                var fieldBytes = ObjToBytes(value);
+                var fieldBytes = ObjectToBytes(value);
                 var offset = LayoutUtils.GetFieldOffset(field);
                 Array.Copy(fieldBytes, 0, array, offset, fieldBytes.Length);
             }
@@ -213,10 +213,9 @@ public static class UnsafeUtils
         var resultBytes = new byte[resultSize];
         foreach (var (o, s, e, p) in slices)
         {
-            var slicingExprBytes = ObjToBytes(o);
+            var slicingExprBytes = ObjectToBytes(o);
             Array.Copy(slicingExprBytes, s, resultBytes, p, e - s);
         }
         return BytesToObject(resultBytes, type);
-
     }
 }
