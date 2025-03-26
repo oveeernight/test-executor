@@ -144,8 +144,6 @@ let getRawReports bytes =
     try
         startNewDeserialization bytes
         let result = deserializeRawReports ()
-        Console.WriteLine $" methods count: {result.methods.Count}"
-        Console.WriteLine $" repors count : {result.reports.Length}"
         result
     with
     | e ->

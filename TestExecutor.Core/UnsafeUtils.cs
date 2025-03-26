@@ -216,6 +216,8 @@ public static class UnsafeUtils
             var slicingExprBytes = ObjectToBytes(o);
             Array.Copy(slicingExprBytes, s, resultBytes, p, e - s);
         }
-        return BytesToObject(resultBytes, type);
+        var result =  BytesToObject(resultBytes, type);
+        Console.WriteLine($"reinterpreted: {result}");
+        return result;
     }
 }

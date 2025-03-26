@@ -45,7 +45,7 @@ type BasicBlock (method: Method, startOffset: int) =
         with get () = finalOffset
         and internal set (v : int) = finalOffset <- v
 
-    member private this.GetInstructions() =
+    member this.GetInstructions() =
         let parsedInstructions = method.Instructions
         let mutable currInstrIdx : int = parsedInstructions.FindIndex(fun instr -> instr.offset = startOffset)
         let mutable notEnd = true

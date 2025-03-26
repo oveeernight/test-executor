@@ -39,6 +39,8 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
             if visited.Contains block |> not then
                 allCovered <- false
                 sb.AppendLine $"Block [0x{block.StartOffset:X} .. 0x{block.FinalOffset:X}] not covered" |> ignore
+                for inst in block.GetInstructions() do
+                    sb.AppendLine $"{inst.opcode}" |> ignore
         if allCovered then
             sb.AppendLine "All blocks are covered" |> ignore
         sb.ToString()
@@ -57,7 +59,6 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
 
         let data = Array.zeroCreate<byte> size
         Marshal.Copy(dataPtr, data, 0, size)
-        Console.WriteLine $"data size: {size}"
         data
 
     member this.SetEntryMain (assembly : Assembly) (moduleName : string) (methodToken : int) =
@@ -81,7 +82,6 @@ type InteractionCoverageTool(workingDirectory: DirectoryInfo) =
             this.GetRawHistory()
             |> getRawReports
             |> reportsFromRawReports
-        Console.WriteLine $"VisitedBlocks {visited.Length}"
         
         let token = cfg.MethodBase.MetadataToken
         let moduleName = cfg.MethodBase.Module.FullyQualifiedName

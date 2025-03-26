@@ -149,6 +149,7 @@ message IlTest {
   repeated google.protobuf.Any arrangeStmts = 1;
   google.protobuf.Any call = 2;
   optional google.protobuf.Any expectedResult = 3;
+  bool raisesCriticalError = 4;
 }
 
 message IlTestBatch {
