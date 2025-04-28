@@ -12,7 +12,9 @@ public record DispatchTestResult(MethodBase method, object?[] args, object? expe
 public class TestResolver(IlTest test)
 {
     private readonly Dictionary<int, object> _instances = new();
-    private static readonly IList<MessageDescriptor> TestExpressionsDescriptors = TestExpressionsReflection.Descriptor.MessageTypes;
+
+    private static readonly IList<MessageDescriptor> TestExpressionsDescriptors =
+        TestExpressionsReflection.Descriptor.MessageTypes;
 
     public DispatchTestResult Resolve()
     {
@@ -117,12 +119,13 @@ public class TestResolver(IlTest test)
         var declTypeRepr = methodCall.MethodRepr.DeclType;
         var methodRepr = methodCall.MethodRepr;
 
-        var declType =  ResolveType(declTypeRepr);
+        var declType = ResolveType(declTypeRepr);
         var methodInfo = declType.GetMethod(methodRepr.Name);
         if (methodInfo == null)
         {
             Console.Error.WriteLine($"Method {methodRepr.Name} not found");
         }
+
         return methodInfo!;
     }
 
@@ -133,8 +136,9 @@ public class TestResolver(IlTest test)
         var field = declType.GetFields().FirstOrDefault(f => f.FieldType == fieldType && f.Name == fieldRepr.Name);
         if (field == null)
         {
-            Console.Error.WriteLine($"Field {declType.Name}.{fieldRepr.Name} not found");   
+            Console.Error.WriteLine($"Field {declType.Name}.{fieldRepr.Name} not found");
         }
+
         return field!;
     }
 
@@ -149,15 +153,17 @@ public class TestResolver(IlTest test)
         else
         {
             var asm = Assembly.Load(asmName);
-            types = asm.GetTypes();
+            types = asm.Modules.First(m => m.MetadataToken == typeRepr.ModuleToken).GetTypes();
             TypesCache.Add(asmName, types);
         }
 
-        var t = types.FirstOrDefault(t => t.MetadataToken == typeRepr.TypeToken);
+        var t = types.FirstOrDefault(t => t.FullName == typeRepr.FullName);
         if (t == null)
         {
-            Console.Error.WriteLine($"Type {typeRepr} was not found among {string.Join(",", types.Select(typ => typ.FullName))}");
+            Console.Error.WriteLine(
+                $"Type {typeRepr} was not found among {string.Join(",", types.Select(typ => typ.FullName))}");
         }
+
         return t!;
     }
 
@@ -167,7 +173,7 @@ public class TestResolver(IlTest test)
         var methodInfo = ResolveMethod(test.Call.Unpack<MethodCall>());
         return methodInfo;
     }
-    
+
     private static IMessage UnpackAny(Any any)
     {
         var url = any.TypeUrl;
@@ -179,6 +185,6 @@ public class TestResolver(IlTest test)
 
         return matchingDescriptor!.Parser.ParseFrom(any.Value);
     }
-    
+
     private static readonly Dictionary<string, Type[]> TypesCache = new();
 }

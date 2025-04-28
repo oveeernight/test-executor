@@ -6,7 +6,7 @@ using TestExecutor.CoverageTool;
 
 namespace TestExecutor.Core;
 
-public class ConcreteExecutorService() : ConcreteExecutor.ConcreteExecutorBase
+public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
 {
     public Assembly? SamplesAssembly { get; set; }
     public override Task<ExecutionResult> Execute(IlTestBatch requestBatch, ServerCallContext context)

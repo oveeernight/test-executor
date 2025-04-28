@@ -11,7 +11,7 @@ service ConcreteExecutor {
 message TypeRepr {
   string asm = 1;
   int32 moduleToken = 2;
-  int32 typeToken = 3;
+  string fullName = 3;
   repeated TypeRepr genericArgs = 4;
 }
 

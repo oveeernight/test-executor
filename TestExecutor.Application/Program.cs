@@ -14,10 +14,9 @@ class Program
 
     public static async Task Main(string[] args)
     {
-        Debug.Assert(args[0] == "--asm");
         var samples = Assembly.LoadFrom(args[1]);
-
-        var host = CreateHostBuilder().Build();
+        var port = int.Parse(args[3]);
+        var host = CreateHostBuilder(port).Build();
 
         var service = host.Services.GetService<ConcreteExecutorService>();
         service.SamplesAssembly = samples;
@@ -25,7 +24,7 @@ class Program
         await host.RunAsync(cts.Token);
     }
     
-    static IHostBuilder CreateHostBuilder() =>
+    static IHostBuilder CreateHostBuilder(int port) =>
         Host.CreateDefaultBuilder()
             .ConfigureServices(s =>
             {
@@ -41,7 +40,7 @@ class Program
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.ConfigureKestrel(options =>
-                    options.ListenLocalhost(8980, listenOptions =>
+                    options.ListenLocalhost(port, listenOptions =>
                         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2))
                     .Configure(app =>
                     {
