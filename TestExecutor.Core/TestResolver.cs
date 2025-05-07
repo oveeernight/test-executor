@@ -160,11 +160,16 @@ public class TestResolver(IlTest test)
         var t = types.FirstOrDefault(t => t.FullName == typeRepr.FullName);
         if (t == null)
         {
-            Console.Error.WriteLine(
-                $"Type {typeRepr} was not found among {string.Join(",", types.Select(typ => typ.FullName))}");
+            throw new Exception( $"Type {typeRepr} was not found among {string.Join(",", types.Select(typ => typ.FullName))}");
         }
 
-        return t!;
+        if (t.IsGenericType)
+        {
+            var resolvedGenerics = typeRepr.GenericArgs.Select(ResolveType).ToArray();
+            t = t.MakeGenericType(resolvedGenerics);
+        }
+
+        return t;
     }
 
     public static MethodBase ResolveBatchExploredMethod(IlTestBatch batch)
@@ -180,10 +185,10 @@ public class TestResolver(IlTest test)
         var matchingDescriptor = TestExpressionsDescriptors.FirstOrDefault(descriptor => url.EndsWith(descriptor.Name));
         if (matchingDescriptor == null)
         {
-            Console.Error.WriteLine($"Unable to find any matching descriptor for {url}");
+            throw new Exception($"Unable to find any matching descriptor for {url}");
         }
 
-        return matchingDescriptor!.Parser.ParseFrom(any.Value);
+        return matchingDescriptor.Parser.ParseFrom(any.Value);
     }
 
     private static readonly Dictionary<string, Type[]> TypesCache = new();
