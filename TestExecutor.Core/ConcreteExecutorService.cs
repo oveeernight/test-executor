@@ -68,7 +68,7 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
             }
             catch (Exception e)
             {
-                var reason = "Internal error occured:\n" + e.StackTrace!;
+                var reason = "Internal error occured:\n" + e.ToString();
                 return new ExecutionResult { Fail = new Fail { Reason = reason } };
             }
         });

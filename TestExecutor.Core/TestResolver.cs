@@ -131,9 +131,10 @@ public class TestResolver(IlTest test)
 
     private static FieldInfo ResolveField(TypeRepr declTypeRepr, FieldRepr fieldRepr)
     {
+        const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         var declType = ResolveType(declTypeRepr);
         var fieldType = ResolveType(fieldRepr.TypeRepr);
-        var field = declType.GetFields().FirstOrDefault(f => f.FieldType == fieldType && f.Name == fieldRepr.Name);
+        var field = declType.GetFields(bindingFlags).FirstOrDefault(f => f.FieldType == fieldType && f.Name == fieldRepr.Name);
         if (field == null)
         {
             Console.Error.WriteLine($"Field {declType.Name}.{fieldRepr.Name} not found");
