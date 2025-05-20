@@ -78,7 +78,6 @@ public class TestResolver(IlTest test)
                 return UnsafeUtils.ReinterpretCombine(type, slices);
             case ArrayInstance array: return ResolveReferenceType(array);
             case ObjectInstance obj: return ResolveReferenceType(obj);
-            case CyclicReference cyclicReference: return ResolveReferenceType(cyclicReference);
             case IlTypeInstance ilTypeInstance: return ResolveType(ilTypeInstance.Type);
             default:
                 Console.Error.WriteLine($"Instantiate expression: unexpected type {message.GetType()}");
@@ -106,8 +105,6 @@ public class TestResolver(IlTest test)
                 var newObj = Activator.CreateInstance(type);
                 _instances.Add(address, newObj);
                 return newObj;
-            case CyclicReference cyclicReference:
-                return _instances[cyclicReference.Address];
             default:
                 Console.Error.WriteLine($"Resolve reference type: unexpected message {message}");
                 return null;
@@ -183,7 +180,8 @@ public class TestResolver(IlTest test)
     private static IMessage UnpackAny(Any any)
     {
         var url = any.TypeUrl;
-        var matchingDescriptor = TestExpressionsDescriptors.FirstOrDefault(descriptor => url.EndsWith(descriptor.Name));
+        var fullName = url.Substring("type.googleapis.com/".Length);
+        var matchingDescriptor = TestExpressionsDescriptors.FirstOrDefault(descriptor => fullName == descriptor.FullName);
         if (matchingDescriptor == null)
         {
             throw new Exception($"Unable to find any matching descriptor for {url}");

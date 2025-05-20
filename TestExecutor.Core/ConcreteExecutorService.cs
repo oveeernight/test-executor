@@ -100,6 +100,9 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
     
     private bool CheckCoverage(MethodBase method, int actual)
     {
+        int x = 1;
+        byte y = 1;
+        var z = x + y;
         Type testSvmAttribute = SamplesAssembly.GetTypes().First(t => t.Name.EndsWith("SvmTestAttribute"));
         var coverageAttribute = method.GetCustomAttribute(testSvmAttribute);
         if (coverageAttribute == null)

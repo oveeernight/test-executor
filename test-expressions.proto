@@ -57,22 +57,22 @@ message Int64Const {
 }
 
 message UInt8Const {
-  sint32 value = 1;
+  uint32 value = 1;
   TypeRepr typeRepr = 2;
 }
 
 message UInt16Const {
-  sint32 value = 1;
+  uint32 value = 1;
   TypeRepr typeRepr = 2;
 }
 
 message UInt32Const {
-  sint32 value = 1;
+  uint32 value = 1;
   TypeRepr typeRepr = 2;
 }
 
 message UInt64Const {
-  sint64 value = 1;
+  uint64 value = 1;
   TypeRepr typeRepr = 2;
 }
 
@@ -138,11 +138,6 @@ message SetObjectField {
 
 message IlTypeInstance {
   TypeRepr type = 1;
-}
-
-message CyclicReference {
-  TypeRepr typeRepr = 1;
-  int32 address = 2;
 }
 
 message IlTest {
