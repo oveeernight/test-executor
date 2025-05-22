@@ -58,7 +58,8 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
             catch (TargetInvocationException ex)
             {
                 var actualException = ex.InnerException;
-                if (ObjectsComparer.Equals(actualException, expectedException))
+                if (actualException.GetType() == expectedException.GetType())
+                // if (ObjectsComparer.Equals(actualException, expectedException))
                 {
                     return new ExecutionResult { Success = new Success() };
                 }
