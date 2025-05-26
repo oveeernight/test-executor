@@ -15,15 +15,18 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
         var mb = TestResolver.ResolveBatchExploredMethod(requestBatch);
         var method = Application.getMethod(mb);
         var cfg = method.CFG;
-
+        
+        var failedTestsReasons = new List<string>();
+        var allTestsCount = requestBatch.Tests.Count;
+        var reproduced = 0;
         var coverageTool = new InteractionCoverageTool(dir);
-        var results = requestBatch.Tests.ToArray().Select<IlTest, ExecutionResult>(test =>
+        foreach (var test in requestBatch.Tests)
         {
             var resolver = new TestResolver(test);
             Exception? expectedException = null;
             try
             {
-                var (method, callArgs, expected) = resolver.Resolve();
+                var (m, callArgs, expected) = resolver.Resolve();
 
                 if (expected is Exception e)
                 {
@@ -32,7 +35,7 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
 
                 object? instance;
 
-                if (method.IsStatic)
+                if (m.IsStatic)
                 {
                     instance = null;
                 }
@@ -42,58 +45,64 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
                     callArgs = callArgs.Skip(1).ToArray();
                 }
 
-                coverageTool.SetEntryMain(method.Module.Assembly, method.Module.FullyQualifiedName, method.MetadataToken);
+                coverageTool.SetEntryMain(m.Module.Assembly, m.Module.FullyQualifiedName, m.MetadataToken);
                 coverageTool.SetCurrentThreadId(0);
 
-                var actual = method.Invoke(instance, callArgs);
+                var actual = m.Invoke(instance, callArgs);
 
                 var resultsEqual = ObjectsComparer.Equals(expected, actual);
                 if (resultsEqual)
                 {
-                    return new ExecutionResult { Success = new Success() };
+                    reproduced++;
                 }
-                var reason = $"Symbolic result is not equal to actual, expected {expected}, actual {actual}";
-                return new ExecutionResult { Fail = new Fail { Reason = reason } };
+                else
+                {
+                    var reason = $"Symbolic result is not equal to actual, expected {expected}, actual {actual}";
+                    failedTestsReasons.Add(reason);
+                }
             }
             catch (TargetInvocationException ex)
             {
                 var actualException = ex.InnerException;
-                if (actualException.GetType() == expectedException.GetType())
+                if (actualException?.GetType() == expectedException?.GetType())
                 // if (ObjectsComparer.Equals(actualException, expectedException))
                 {
-                    return new ExecutionResult { Success = new Success() };
+                    reproduced++;
                 }
-
-                var reason = $"Unexpected exception {actualException}";
-                return new ExecutionResult { Fail = new Fail { Reason = reason } };
+                else
+                {
+                    var reason = $"Unexpected exception {actualException}";
+                    failedTestsReasons.Add(reason);   
+                }
             }
             catch (Exception e)
             {
-                var reason = "Internal error occured:\n" + e.ToString();
-                return new ExecutionResult { Fail = new Fail { Reason = reason } };
+                var reason = "Internal error occured:\n" + e;
+                failedTestsReasons.Add(reason);
             }
-        });
+        }
         
-        var failedTests = results.Where(test => test.Fail is not null).ToArray();
-        if (failedTests.Any())
+        var (actualCoverage, info) = coverageTool.ComputeCoverage(cfg.MethodBase, cfg);
+        
+        if (failedTestsReasons.Any())
         {
-            var failReason = string.Join("\n", failedTests.Select(test => test.Fail.Reason));
-            var result = new ExecutionResult { Fail = new Fail { Reason = failReason } };
+            var reproducingFailReason = string.Join("\n", failedTestsReasons);
+            var result = new ExecutionResult
+            {
+                Fail = new Fail { Reason = reproducingFailReason, Coverage = actualCoverage, Reproduced = reproduced }
+            };
             return Task.FromResult(result);
         }
 
-
-        var (actualCoverage, info) = coverageTool.ComputeCoverage(cfg.MethodBase, cfg);
-
         if (CheckCoverage(cfg.MethodBase, actualCoverage))
         {
-            var result = new ExecutionResult { Success = new Success() };
+            var result = new ExecutionResult { Success = new Success { Coverage = actualCoverage, GeneratedTests = allTestsCount } };
             return Task.FromResult(result);
         }
         else
         {
             info = $"Actual coverage is {actualCoverage}\n{info}";
-            var result = new ExecutionResult { Fail = new Fail {Reason = info} };
+            var result = new ExecutionResult { Fail = new Fail {Reason = info, Coverage = actualCoverage, Reproduced = reproduced} };
             return Task.FromResult(result);
         }
 
@@ -115,7 +124,7 @@ public class ConcreteExecutorService : ConcreteExecutor.ConcreteExecutorBase
         {
             throw new Exception($"Method {method.Name} does not have expected coverage attribute set");
         }
-        
+
         return actual == (int)expectedCoverage;
     }
 }

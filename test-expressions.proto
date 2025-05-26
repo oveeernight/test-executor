@@ -151,10 +151,15 @@ message IlTestBatch {
   repeated IlTest tests = 1;
 }
 
-message Success {}
+message Success {
+  int32 generatedTests = 1;
+  int32 coverage = 2;
+}
+
 message Fail {
   string reason = 1;
   int32 coverage = 2;
+  int32 reproduced = 3;
 }
 
 message ExecutionResult {
